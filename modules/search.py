@@ -64,14 +64,21 @@ RELEVANCE_KEYWORDS = [
 ]
 
 def _is_relevant(item, query_keywords):
-    """Skip hasil yang totally nggak relevan."""
+    """Skip hasil yang totally nggak relevan — strict."""
     text = ((item.get("title") or "") + " " + (item.get("url") or "") + " "
             + (item.get("snippet") or "")).lower()
-    # Harus ada minimal 1 keyword relevansi
+    # Skip domain obvious non-API (weather.com, accuweather, dll) — kecuali query = weather
+    BLACKLIST_DOMAINS = ["weather.com", "accuweather", "bbc.com/weather",
+                         "meteoblue", "weather-forecast", "météo", "meteo",
+                         "wunderground", "weatherbug"]
+    q_has_weather = any(k in " ".join(query_keywords) for k in ["weather", "forecast", "météo"])
+    if not q_has_weather:
+        for bl in BLACKLIST_DOMAINS:
+            if bl in text:
+                return False
+    # Wajib ada minimal 1 keyword relevansi (api, docs, developer, dll)
     has_relevance = any(k in text for k in RELEVANCE_KEYWORDS)
-    # Atau harus ada minimal 1 keyword dari query (kalau query >=3 kata)
-    has_query = any(k in text for k in query_keywords) if len(query_keywords) >= 2 else True
-    return has_relevance or has_query
+    return has_relevance
 
 # ============ DOMAIN DEDUPE ============
 def _domain(url):
@@ -83,9 +90,15 @@ def _domain(url):
 
 # ============ BING ============
 def bing(query, limit):
+    # Enhance query: tambah "developer" atau "documentation" kalau belum ada
+    q_lower = query.lower()
+    if not any(k in q_lower for k in ["documentation", "docs", "api", "developer"]):
+        enhanced = query + " API documentation"
+    else:
+        enhanced = query
     try:
         r = requests.get("https://www.bing.com/search",
-            params={"q": query, "count": limit},
+            params={"q": enhanced, "count": limit, "setlang": "en-US", "cc": "US"},
             headers={"User-Agent": UA, "Accept-Language": "en-US,en;q=0.9"},
             timeout=Config.SEARCH_TIMEOUT)
         if not r.ok: return []
