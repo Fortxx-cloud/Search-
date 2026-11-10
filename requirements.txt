@@ -4,3 +4,4 @@ python-dotenv>=1.0
 flask>=3.0
 lxml>=5.0
 ddgs>=9.0
+pg8000>=1.30,<2

@@ -30,6 +30,11 @@ def engines_health():
     alive = sum(1 for v in out.values() if v["status"] == "ok")
     return jsonify({"alive": alive, "total": len(out), "engines": out})
 
+@app.route("/cache")
+def cache_info():
+    from modules.search import cache_stats
+    return jsonify(cache_stats())
+
 @app.route("/health")
 def health():
     return jsonify({"status": "ok"})
