@@ -16,6 +16,10 @@ from modules.searxng import searxng
 from modules.engine_ddgs import ddgs
 from modules.engine_whoogle import whoogle
 from modules.engine_slopsearx import slopsearx
+from modules.engine_webless import webless
+from modules.engine_googlesearch import googlesearch
+from modules.engine_pypi import pypi
+from modules.engine_reddit import reddit
 
 logger = logging.getLogger(__name__)
 UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
@@ -108,7 +112,7 @@ def bing(query, limit):
         logger.debug(f"bing: {e}"); return []
 
 # ============ ALL ENGINES ============
-ALL_ENGINES = ([bing, searxng, ddgs, whoogle, slopsearx]
+ALL_ENGINES = ([bing, searxng, ddgs, whoogle, slopsearx, webless, googlesearch, pypi, reddit]
                + ALL_EXTRA_SCRAPERS
                + ALL_PUBLIC_APIS
                + [tavily, exa, jina, serper, firecrawl, brave_api]
