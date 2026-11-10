@@ -18,4 +18,5 @@ class Config:
     YOU_API_KEY = os.getenv("YOU_API_KEY", "")
     SEARCH_TIMEOUT = int(os.getenv("SEARCH_TIMEOUT", "20"))
     SEARCH_MAX_RESULTS = int(os.getenv("SEARCH_MAX_RESULTS", "20"))
+    SEARXNG_URL = os.getenv("SEARXNG_URL", "")
     FLASK_PORT = int(os.getenv("SERVER_PORT", os.getenv("PORT", os.getenv("FLASK_PORT", "8080"))))

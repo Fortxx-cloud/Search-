@@ -12,6 +12,24 @@ def home():
     return jsonify({"service": "pusat-search", "version": "1.0.0",
                     "endpoints": ["/health", "/search?q=", "/discover?q="]})
 
+@app.route("/engines")
+def engines_health():
+    import time
+    from modules.search import ALL_ENGINES
+    out = {}
+    for fn in ALL_ENGINES:
+        name = fn.__name__
+        t0 = time.time()
+        try:
+            r = fn("test", 3)
+            out[name] = {"status": "ok" if r else "empty",
+                         "count": len(r), "ms": int((time.time()-t0)*1000)}
+        except Exception as e:
+            out[name] = {"status": "error", "error": str(e)[:80],
+                         "ms": int((time.time()-t0)*1000)}
+    alive = sum(1 for v in out.values() if v["status"] == "ok")
+    return jsonify({"alive": alive, "total": len(out), "engines": out})
+
 @app.route("/health")
 def health():
     return jsonify({"status": "ok"})
@@ -21,14 +39,14 @@ def search():
     q = request.args.get("q", "").strip()
     if not q: return jsonify({"error": "q required"}), 400
     limit = int(request.args.get("limit", "20"))
-    results = search_mod.search(q, limit=limit)
-    return jsonify({"query": q, "count": len(results), "results": results})
+    results, stats = search_mod.search(q, limit=limit)
+    return jsonify({"query": q, "count": len(results), "sources": stats, "results": results})
 
 @app.route("/discover")
 def discover():
     q = request.args.get("q", "").strip()
     if not q: return jsonify({"error": "q required"}), 400
-    results = search_mod.search(q, limit=20)
+    results, _ = search_mod.search(q, limit=20)
     apis = extractor.extract(q, results)
     database.init_db()
     saved = 0
